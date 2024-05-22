@@ -783,7 +783,7 @@ def video_card(db_session, video_stats):
             cc = comment_counts_over_time(comments, block_mins=None, n_bins=30)
 
             chart = alt.Chart(cc).mark_line().encode(
-                x=alt.X('Time Block:T', axis=alt.Axis(title='Time (30 equal-sized bins)', format='%Y-%m-%d %H:%M')),
+                x=alt.X('Time Block:T', axis=alt.Axis(title='Time (30 equal-duration bins)', format='%Y-%m-%d %H:%M')),
                 y=alt.Y('Comments:Q', axis=alt.Axis(title='Number of Comments'))
             )
 
