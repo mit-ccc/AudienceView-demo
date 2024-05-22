@@ -301,25 +301,35 @@ def sentiment_bucket(score, baseline):
         return '😡'
 
 
-def comment_counts_over_time(comments, block_hours=3):
-    # Function to round/truncate datetime to the nearest block
-    def round_to_nearest_block(dt, block_hours):
-        rounded_minute = (dt.minute // (block_hours * 60)) * (block_hours * 60)
-        return dt.replace(minute=rounded_minute, second=0, microsecond=0)
+def comment_counts_over_time(comments, block_mins=180, n_bins=None):
+    assert n_bins is None or block_mins is None
+    assert n_bins is not None or block_mins is not None
 
-    # Aggregate comments
+    start_dt = min(c.publish_dt for c in comments)
+    end_dt = max(c.publish_dt for c in comments)
+
+    if block_mins is None:
+        mins = (end_dt - start_dt).total_seconds() // 60
+        block_mins = mins // n_bins
+
+    def round_to_nearest_block(dt, start_dt, block_mins):
+        time_difference = dt - start_dt
+        block_seconds = block_mins * 60
+        total_seconds = time_difference.total_seconds()
+        nearest_block_seconds = round(total_seconds / block_seconds) * block_seconds
+        rounded_datetime = start_dt + datetime.timedelta(seconds=nearest_block_seconds)
+
+        return rounded_datetime
+
     comment_blocks = cl.defaultdict(int)
     for comment in comments:
-        block_time = round_to_nearest_block(comment.publish_dt, block_hours)
+        block_time = round_to_nearest_block(comment.publish_dt, start_dt, block_mins)
         comment_blocks[block_time] += 1
 
-    # Create a sorted list of times and counts
     sorted_times = sorted(comment_blocks.keys())
     sorted_counts = [comment_blocks[time] for time in sorted_times]
 
-    # Create DataFrame
     data = pd.DataFrame({'Time Block': sorted_times, 'Comments': sorted_counts})
-    data.set_index('Time Block', inplace=True)
 
     return data
 
@@ -352,13 +362,11 @@ def make_wordcloud(comments):
     for word in scores:
         scores[word] /= wfreq[word]
 
-    # Normalizing the sentiment scores to a range [0, 1]
     min_score = min(scores.values())
     max_score = max(scores.values())
     norm = mp.colors.Normalize(vmin=min_score, vmax=max_score)
 
-    # Creating a custom colormap (you can modify this to your preference)
-    colormap = mp.colors.LinearSegmentedColormap.from_list("sentiment_colors", ["red", "white", "blue"])
+    colormap = mp.colors.LinearSegmentedColormap.from_list("sentiment_colors", ["red", "blue"])
 
     def color_func(word, font_size, position, orientation, random_state=None, **kwargs):
         color = colormap(norm(scores[word]))
@@ -375,7 +383,6 @@ def make_wordcloud(comments):
     ax.imshow(wordcloud, interpolation='bilinear')
     ax.axis("off")
 
-    # Create a ScalarMappable and initialize a data array with the normalized scores
     sm = mp.cm.ScalarMappable(cmap=colormap, norm=norm)
     sm.set_array([])
 
@@ -773,8 +780,14 @@ def video_card(db_session, video_stats):
         if len(comments) > 0:
             st.subheader('Comments over time')
 
-            cc = comment_counts_over_time(comments)
-            st.line_chart(cc)
+            cc = comment_counts_over_time(comments, block_mins=None, n_bins=30)
+
+            chart = alt.Chart(cc).mark_line().encode(
+                x=alt.X('Time Block:T', axis=alt.Axis(title='Time (30 equal-sized bins)', format='%Y-%m-%d %H:%M')),
+                y=alt.Y('Comments:Q', axis=alt.Axis(title='Number of Comments'))
+            )
+
+            st.altair_chart(chart.interactive(), use_container_width=True)
     with right:
         if len(comments) > 0:
             st.subheader("What's in the comments?")
