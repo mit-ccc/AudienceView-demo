@@ -1,25 +1,30 @@
 SHELL := /bin/bash
+DKC := $(shell command -v docker-compose 2> /dev/null || { command -v docker > /dev/null && echo 'docker compose'; })
+
+ifeq ($(DKC),)
+$(error Neither docker-compose nor docker compose found)
+endif
 
 .PHONY: up db-refresh sentiment-topic comments down build clean
 
 up: db-refresh
-	export MODE=run && docker-compose up -d --remove-orphans streamlit 
+	export MODE=run && $(DKC) up -d --remove-orphans streamlit 
 
 db-refresh: down build
-	export MODE=refresh && docker-compose run --remove-orphans --rm streamlit
+	export MODE=refresh && $(DKC) run --remove-orphans --rm streamlit
 
 sentiment-topic: down build
-	docker-compose run --remove-orphans --rm sentiment-topic
+	$(DKC) run --remove-orphans --rm sentiment-topic
 
 comments: down build
-	docker-compose run --remove-orphans --rm comments
+	$(DKC) run --remove-orphans --rm comments
 
 down:
-	docker-compose down
-	docker-compose rm -fsv
+	$(DKC) down
+	$(DKC) rm -fsv
 
 build:
-	docker-compose build
+	$(DKC) build
 
 clean:
 	rm -rf build
@@ -33,4 +38,3 @@ clean:
 	find . -name '*~'          -not -path '*/\.git/*' -exec rm -f {} \+
 	find . -name tags          -not -path '*/\.git/*' -exec rm -f {} \+
 	find . -name tags.lock     -not -path '*/\.git/*' -exec rm -f {} \+
-
