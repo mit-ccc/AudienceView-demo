@@ -12,4 +12,4 @@ RUN pip3 install -r requirements.txt
 
 COPY . .
 
-CMD ["run.sh"]
+CMD ["/app/run.sh"]

@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   # Fetch videos/comments data
   comments:
