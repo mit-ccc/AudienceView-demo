@@ -42,11 +42,11 @@ class ChannelFetch:
 
     @property
     def video_path(self):
-        return os.path.join(args.outdir, 'videos_in_channel.json')
+        return os.path.join(self.outdir, 'videos_in_channel.json')
 
     @property
     def comments_path(self):
-        return os.path.join(args.outdir, 'comments')
+        return os.path.join(self.outdir, 'comments')
 
     def fetch_videos(self):
         # Get the Uploads playlist ID from channel ID
@@ -58,7 +58,7 @@ class ChannelFetch:
         # Fetch basic video details
         while True:
             res = (
-                self.youtube.playlistItems()
+                self.api.playlistItems()
                 .list(
                     playlistId=playlist_id,
                     part="snippet",
@@ -116,8 +116,8 @@ class ChannelFetch:
 
             # check if there are more comments
             if "nextPageToken" in results:
-                args["pageToken"] = results["nextPageToken"]
-                results = self.api.commentThreads().list(**args).execute()
+                kwargs["pageToken"] = results["nextPageToken"]
+                results = self.api.commentThreads().list(**kwargs).execute()
             else:
                 break
 
@@ -150,6 +150,7 @@ class ChannelFetch:
             comments = self.fetch_video_comments(video_id)
         except HttpError:
             logger.exception('Could not load video info: %s', video_id)
+            raise
         else:
             with open(outfile, 'wt', encoding='utf-8') as f:
                 json.dump(comments, f)
@@ -172,7 +173,7 @@ def parse_args():
 
     parser.add_argument('channel_id', nargs='?', default=None, help='YouTube Channel ID')
 
-    parser.add_argument('--cached', '-c', action='store_true', help='Avoid fetching new videos (comments only)')
+    parser.add_argument('--cached_videos', '-c', action='store_true', help='Avoid fetching new videos (comments only)')
     parser.add_argument('--outdir', '-o', default='data', help='Output directory')
     parser.add_argument('--verbose', '-d', action='store_true', help='Debug output')
     parser.add_argument('--progress', '-p', action='store_true', help='Progress bar')
