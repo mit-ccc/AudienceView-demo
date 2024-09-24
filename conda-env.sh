@@ -22,4 +22,4 @@ ENV_NAME='audienceview'
 "$HOME/miniconda3/bin/mamba" install -y -n "$ENV_NAME" -c conda-forge \
     altair google-api-python-client hdbscan matplotlib nltk numpy openai \
     pandas scipy sqlalchemy statsmodels streamlit tqdm transformers \
-    umap-learn wordcloud
+    umap-learn wordcloud pip-tools
