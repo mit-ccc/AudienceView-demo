@@ -3,5 +3,5 @@ tqdm
 numpy
 pandas
 hdbscan
-umap
+umap-learn
 transformers
