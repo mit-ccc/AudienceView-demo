@@ -5,7 +5,6 @@ import logging
 
 import utils as ut
 from models import get_db
-from app import DB_PATH, SUMMARY_SUGGEST_CACHE_DIR
 from video_text2text import VideoSummary, VideoSuggestions, ClusterShortName
 
 
@@ -13,7 +12,12 @@ logger = logging.getLogger(__name__)
 
 
 if __name__ == '__main__':
-    os.makedirs('data', exist_ok=True)
+    DATA_DIR, DB_PATH, SUMMARY_SUGGEST_CACHE_DIR = ut.get_data_paths()
+
+    try:
+        os.makedirs(DATA_DIR, exist_ok=True)
+    except PermissionError:  # NFS
+        pass
 
     ut.log_setup()
     ut.seed_everything()

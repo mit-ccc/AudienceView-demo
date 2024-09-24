@@ -8,7 +8,11 @@ class FileCache:
         _cache_keys = []
 
         if cache_dir is not None:
-            os.makedirs(cache_dir, exist_ok=True)
+            try:
+                os.makedirs(cache_dir, exist_ok=True)
+            except PermissionError:  # NFS
+                pass
+
             _cache_keys += os.listdir(cache_dir)
 
         self.cache_dir = cache_dir

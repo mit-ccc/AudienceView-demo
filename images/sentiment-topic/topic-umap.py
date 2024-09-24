@@ -24,12 +24,14 @@ if __name__ == '__main__':
     seed = int(os.environ.get('SEED', '42'))
     ut.seed_everything(seed)
 
+    data_dir = os.getenv('DATA_DIR', 'data')
+
     #
     # Sample to train on
     #
 
     sample = load_comments_from_json(
-        rootpath='data/',
+        rootpath=data_dir,
         channel_id=os.getenv('CHANNEL_ID', None),
         playlist_id=os.getenv('PLAYLIST_ID', None),
     )
@@ -42,20 +44,21 @@ if __name__ == '__main__':
         .tolist()
     sample = set(sample)
 
-    ids = pd.read_csv('data/comment-topics/sentence-embeds-ids.csv')['id']
+    embeds_ids_path = os.path.join(data_dir, 'comment-topics/sentence-embeds-ids.csv')
+    ids = pd.read_csv(embeds_ids_path)['id']
     train_mask = np.asarray([i in sample for i in ids.to_numpy().tolist()])
     logger.info(f'Training on {train_mask.sum()} samples')
 
-    ids.loc[train_mask].to_csv('data/comment-topics/umap-hdbscan-sample-ids.csv', index=False)
+    sample_ids_path = os.path.join(data_dir, 'comment-topics/umap-hdbscan-sample-ids.csv')
+    ids.loc[train_mask].to_csv(sample_ids_path, index=False)
 
     #
     # 50d UMAP
     #
 
     logger.info('50d UMAP')
-    umap_embeds_50d_path = 'data/comment-topics/umap-embeds-50d.npy'
 
-    embeds_file = 'data/comment-topics/sentence-embeds.pt'
+    embeds_file = os.path.join(data_dir, 'comment-topics/sentence-embeds.pt')
     with open(embeds_file, 'rb') as obj:
         embeds = torch.load(obj, 'cpu').float().numpy()[train_mask, ...]
 
@@ -76,5 +79,6 @@ if __name__ == '__main__':
     umap_embeds_50d = umap_model_50d.transform(embeds)
 
     with ut.DelayedKeyboardInterrupt():
+        umap_embeds_50d_path = os.path.join(data_dir, 'comment-topics/umap-embeds-50d.npy')
         with open(umap_embeds_50d_path, 'wb') as f:
             np.save(f, umap_embeds_50d)

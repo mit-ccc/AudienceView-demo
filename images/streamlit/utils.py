@@ -39,6 +39,15 @@ def seed_everything():
     np.random.seed(seed)
 
 
+def get_data_paths():
+    data_dir = os.getenv('DATA_DIR', 'data')
+
+    db_path = os.path.join(data_dir, 'youtube.db')
+    cache_dir = os.path.join(data_dir, 'summary-suggest-gpt')
+
+    return db_path, cache_dir
+
+
 def remove_punctuation(text):
     for punct in string.punctuation:
         if punct == "'":

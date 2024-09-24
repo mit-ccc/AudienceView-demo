@@ -42,8 +42,15 @@ class SentenceEmbedder:
         self.sort_length = sort_length
         self.autocast = autocast
 
-        os.makedirs(output_dir, exist_ok=True)
-        os.makedirs(self._cache_path, exist_ok=True)
+        try:
+            os.makedirs(output_dir, exist_ok=True)
+        except PermissionError:  # NFS
+            pass
+
+        try:
+            os.makedirs(self._cache_path, exist_ok=True)
+        except PermissionError:
+            pass
 
         self._cached = self._load_cache_state()
         self.data = [r for r in self.data if not self._is_cached(r['id'])]
@@ -190,10 +197,16 @@ if __name__ == '__main__':
     seed = int(os.environ.get('SEED', '42'))
     ut.seed_everything(seed)
 
-    os.makedirs('data', exist_ok=True)
+    data_dir = os.getenv('DATA_DIR', 'data')
+    output_dir = os.path.join(data_dir, 'comment-topics')
+
+    try:
+        os.makedirs(data_dir, exist_ok=True)
+    except PermissionError:  # NFS
+        pass
 
     data = load_comments_from_json(
-        rootpath='data/',
+        rootpath=data_dir,
         channel_id=os.getenv('CHANNEL_ID', None),
         playlist_id=os.getenv('PLAYLIST_ID', None),
         full_only=True,
@@ -202,7 +215,4 @@ if __name__ == '__main__':
     for d in data:
         d.pop('video_id')
 
-    SentenceEmbedder(
-        data=data,
-        output_dir='data/comment-topics/',
-    ).process()
+    SentenceEmbedder(data=data, output_dir=output_dir).process()

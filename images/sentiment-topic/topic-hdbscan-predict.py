@@ -20,14 +20,19 @@ if __name__ == '__main__':
     seed = int(os.environ.get('SEED', '42'))
     ut.seed_everything(seed)
 
-    with open('data/comment-topics/umap-embeds-50d.npy', 'rb') as f:
+    data_dir = os.getenv('DATA_DIR', 'data')
+
+    path_u50d = os.path.join(data_dir, 'comment-topics/umap-embeds-50d.npy')
+    with open(path_u50d, 'rb') as f:
         umap_embeds_50d = np.load(f)
 
-    with open('data/comment-topics/hdbscan-clusterer-umap-50d.pkl', 'rb') as f:
+    path_c50d = os.path.join(data_dir, 'comment-topics/hdbscan-clusterer-umap-50d.pkl')
+    with open(path_c50d, 'rb') as f:
         clusterer = pickle.load(f)
 
     labels = approximate_predict(clusterer, umap_embeds_50d)[0]
 
     with ut.DelayedKeyboardInterrupt():
-        with open('data/comment-topics/hdbscan-labels-umap-50d.npy', 'wb') as f:
+        path_l50d = os.path.join(data_dir, 'comment-topics/hdbscan-labels-umap-50d.npy')
+        with open(path_l50d, 'wb') as f:
             np.save(f, labels)

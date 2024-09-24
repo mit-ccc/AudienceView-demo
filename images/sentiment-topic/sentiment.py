@@ -43,7 +43,10 @@ class SentimentAnalyzer:
         self.autocast = autocast
         self.data_parallel = data_parallel
 
-        os.makedirs(output_dir, exist_ok=True)
+        try:
+            os.makedirs(output_dir, exist_ok=True)
+        except PermissionError:  # NFS
+            pass
 
         self._cache = self._load_cache()
 
@@ -160,10 +163,16 @@ if __name__ == '__main__':
     seed = int(os.environ.get('SEED', '42'))
     ut.seed_everything(seed)
 
-    os.makedirs('data', exist_ok=True)
+    data_dir = os.getenv('DATA_DIR', 'data')
+    output_dir = os.path.join(data_dir, 'comments')
+
+    try:
+        os.makedirs(data_dir, exist_ok=True)
+    except PermissionError:  # NFS
+        pass
 
     data = load_comments_from_json(
-        rootpath='data/',
+        rootpath=data_dir,
         channel_id=os.getenv('CHANNEL_ID', None),
         playlist_id=os.getenv('PLAYLIST_ID', None),
     )
@@ -171,4 +180,4 @@ if __name__ == '__main__':
     for d in data:
         d.pop('video_id')
 
-    SentimentAnalyzer(data=data, output_dir='data/comments/').process()
+    SentimentAnalyzer(data=data, output_dir=output_dir).process()

@@ -38,7 +38,10 @@ class ChannelFetch:
         self.youtube_api_key = os.environ['YOUTUBE_API_KEY']
         self.api = build('youtube', 'v3', developerKey=self.youtube_api_key)
 
-        os.makedirs(self.comments_path, exist_ok=True)
+        try:
+            os.makedirs(self.comments_path, exist_ok=True)
+        except PermissionError:  # NFS
+            pass
 
     @property
     def video_path(self):
@@ -177,24 +180,36 @@ class ChannelFetch:
 def parse_args():
     parser = argparse.ArgumentParser(description='Fetch YouTube video/comment data')
 
-    parser.add_argument('channel_id', nargs='?', default=None, help='YouTube Channel ID')
+    parser.add_argument('channel_id', nargs='?', default=None,
+                        help='YouTube Channel ID')
+    parser.add_argument('--outdir', '-o', default=None,
+                        help='Output directory')
 
-    parser.add_argument('--cached_videos', '-c', action='store_true', help='Avoid fetching new videos (comments only)')
-    parser.add_argument('--outdir', '-o', default='data', help='Output directory')
-    parser.add_argument('--verbose', '-d', action='store_true', help='Debug output')
-    parser.add_argument('--progress', '-p', action='store_true', help='Progress bar')
-    parser.add_argument('--new-threshold-days', '-n', default=None, help='Always refresh comments for videos newer than this (in days)')
+    parser.add_argument('--cached_videos', '-c', action='store_true',
+                        help='Avoid fetching new videos (comments only)')
+    parser.add_argument('--verbose', '-d', action='store_true',
+                        help='Debug output')
+    parser.add_argument('--progress', '-p', action='store_true',
+                        help='Progress bar')
+    parser.add_argument('--new-threshold-days', '-n', default=None,
+                        help='Always refresh comments for videos newer than this (in days)')
 
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if args.channel_id is None:
+        assert 'CHANNEL_ID' in os.environ.keys()
+        setattr(args, 'channel_id', os.environ.get('CHANNEL_ID'))
+
+    if args.outdir is None:
+        outdir = os.getenv('DATA_DIR', 'data')
+        setattr(args, 'outdir', outdir)
+
+    return args
 
 
 if __name__ == '__main__':
     args = vars(parse_args())
 
     ut.log_setup('DEBUG' if args.pop('verbose') else None)
-
-    if args['channel_id'] is None:
-        assert 'CHANNEL_ID' in os.environ.keys()
-        args['channel_id'] = os.environ.get('CHANNEL_ID')
 
     ChannelFetch(**args).run()

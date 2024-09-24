@@ -32,9 +32,7 @@ from models import (
 
 logger = logging.getLogger(__name__)
 
-
-DB_PATH = 'data/youtube.db'
-SUMMARY_SUGGEST_CACHE_DIR = './data/summary-suggest-gpt'
+DATA_DIR, DB_PATH, SUMMARY_SUGGEST_CACHE_DIR = ut.get_data_paths()
 
 
 def stmt_to_pandas(stmt, index_col=None):
