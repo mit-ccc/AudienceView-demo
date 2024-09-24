@@ -132,6 +132,12 @@ class ChannelFetch:
             with open(self.video_path, 'wt', encoding='utf-8') as f:
                 json.dump(videos, f)
 
+        try:
+            videos = sorted(videos, key=lambda s: s['snippet']['publishedAt'],
+                            reverse=True)
+        except KeyError:
+            logger.exception('Failed to sort videos')
+
         return videos
 
     def ensure_comments(self, video):
