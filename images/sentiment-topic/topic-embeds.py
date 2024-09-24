@@ -26,8 +26,12 @@ logger = logging.getLogger(__name__)
 class SentenceEmbedder:
     def __init__(self, data, output_dir, cache_dir='sentence-embeds-cache',
                  padding=True, truncation=True, max_length=512, batch_size=128,
-                 sort_length=True, autocast=True, device_ids=None):
+                 sort_length=True, autocast=True, torch_compile=None,
+                 device_ids=None):
         super().__init__()
+
+        if torch_compile is None:
+            torch_compile = bool(int(os.getenv('TORCH_COMPILE', '0')))
 
         self.data = data
         self.output_dir = output_dir
@@ -78,10 +82,11 @@ class SentenceEmbedder:
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         self.model = AutoModel.from_pretrained(self.model_name)
 
+        if torch_compile:
+            self.model = torch.compile(self.model)
+
         if len(self.devices) > 1:
             self.model = nn.DataParallel(self.model, device_ids=self.devices)
-
-        # self.model = torch.compile(self.model)
 
         self.model = self.model.to(self.device)
 
