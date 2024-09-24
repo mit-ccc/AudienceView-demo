@@ -60,7 +60,10 @@ if __name__ == '__main__':
 
     embeds_file = os.path.join(data_dir, 'comment-topics/sentence-embeds.pt')
     with open(embeds_file, 'rb') as obj:
-        embeds = torch.load(obj, 'cpu').float().numpy()[train_mask, ...]
+        embeds = torch.load(obj, 'cpu', weights_only=True) \
+            .float() \
+            .numpy() \
+            [train_mask, ...]
 
     params = {
         'n_neighbors': 15,

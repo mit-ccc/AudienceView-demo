@@ -122,7 +122,7 @@ class SentenceEmbedder:
             ids += [pd.read_csv(fname + '.csv')]
 
             with open(fname + '.pt', 'rb') as obj:
-                embeds += [torch.load(obj, 'cpu')]
+                embeds += [torch.load(obj, 'cpu', weights_only=True)]
         ids = pd.concat(ids, axis=0)
         embeds = torch.cat(embeds, dim=0)
 
