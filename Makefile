@@ -5,6 +5,9 @@ ifeq ($(DKC),)
 $(error Neither docker-compose nor docker compose found)
 endif
 
+export USERID ?= $(shell id -u)
+export GROUPID ?= $(shell id -g)
+
 .PHONY: up db-refresh sentiment-topic comments down build clean
 
 up: db-refresh

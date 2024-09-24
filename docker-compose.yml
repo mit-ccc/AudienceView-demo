@@ -3,18 +3,26 @@ services:
   comments:
     build:
       context: ./images/comments
+      args:
+        USERID: "${USERID:-0}"
+        GROUPID: "${GROUPID:-0}"
+    user: "${USERID:-0}:${GROUPID:-0}"
     container_name: comments
     volumes:
-      - ./data:/app/data
+      - ./data:/app/data:rw
     env_file: conf.env
 
   # Compute sentiment and topic info
   sentiment-topic:
     build:
       context: ./images/sentiment-topic
+      args:
+        USERID: "${USERID:-0}"
+        GROUPID: "${GROUPID:-0}"
+    user: "${USERID:-0}:${GROUPID:-0}"
     container_name: sentiment-topic
     volumes:
-      - ./data:/app/data
+      - ./data:/app/data:rw
     env_file: conf.env
     deploy:
       resources:
@@ -30,6 +38,12 @@ services:
   streamlit:
     build:
       context: ./images/streamlit
+      args:
+        USERID: "${USERID:-0}"
+        GROUPID: "${GROUPID:-0}"
+    user: "${USERID:-0}:${GROUPID:-0}"
+    environment:
+      - MODE="${MODE:-run}"
     container_name: streamlit
     hostname: streamlit
     networks:
@@ -39,10 +53,8 @@ services:
         published: 8504
         protocol: tcp
         mode: host
-    environment:
-      - MODE=${MODE:-run}
     volumes:
-      - ./data:/app/data
+      - ./data:/app/data:rw
     restart: on-failure
     env_file: conf.env
 
