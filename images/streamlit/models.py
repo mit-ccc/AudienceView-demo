@@ -514,13 +514,16 @@ def populate_db(engine):
 
     db_factory = sessionmaker(bind=engine)
 
+    data_dir, db_path, cache_dir = ut.get_data_paths()
+    videos_path = os.path.join(data_dir, 'videos_in_channel.json')
+
     with db_factory() as session:
         session.begin()
 
-        Video.load_from_json(session, 'data/videos_in_channel.json')
-        Commenter.load_from_json(session, 'data/')
-        Cluster.load_from_json(session, 'data/')
-        Comment.load_from_json(session, 'data/')
+        Video.load_from_json(session, videos_path)
+        Commenter.load_from_json(session, data_dir)
+        Cluster.load_from_json(session, data_dir)
+        Comment.load_from_json(session, data_dir)
         CommenterStats.load_from_db(session)
         VideoStats.load_from_db(session)
 

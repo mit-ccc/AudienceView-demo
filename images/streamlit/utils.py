@@ -45,7 +45,7 @@ def get_data_paths():
     db_path = os.path.join(data_dir, 'youtube.db')
     cache_dir = os.path.join(data_dir, 'summary-suggest-gpt')
 
-    return db_path, cache_dir
+    return data_dir, db_path, cache_dir
 
 
 def remove_punctuation(text):
