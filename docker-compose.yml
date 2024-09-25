@@ -43,7 +43,7 @@ services:
         GROUPID: "${GROUPID:-0}"
     user: "${USERID:-0}:${GROUPID:-0}"
     environment:
-      - MODE="${MODE:-run}"
+      - MODE=${MODE:-run}
     container_name: streamlit
     hostname: streamlit
     networks:
