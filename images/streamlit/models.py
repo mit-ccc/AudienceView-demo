@@ -531,7 +531,8 @@ def populate_db(engine):
 
 
 def get_db(db_path):
-    engine = create_engine('sqlite:///' + db_path, echo=False)
+    db_url = 'sqlite:///' + os.path.abspath(db_path)
+    engine = create_engine(db_url, echo=False)
 
     def set_sqlite_pragma(dbapi_connection, connection_record):
         cursor = dbapi_connection.cursor()
