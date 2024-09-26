@@ -22,7 +22,7 @@ RUN if ! getent group ${GROUPID} >/dev/null; then \
 
 # Check if the user exists, and create it if it doesn't
 RUN if ! getent passwd ${USERID} >/dev/null; then \
-        useradd -m -u ${USERID} -g mygroup myuser; \
+        useradd -m -u ${USERID} -g ${GROUPID} myuser; \
     fi
 
 USER ${USERID}:${GROUPID}
