@@ -9,7 +9,6 @@ WORKDIR /app
 
 COPY requirements.txt /app
 RUN pip3 install -r /app/requirements.txt
-RUN python3 -m nltk.downloader stopwords
 RUN rm -f /app/requirements.txt
 
 ARG USERID=0
@@ -26,6 +25,9 @@ RUN if ! getent passwd ${USERID} >/dev/null; then \
     fi
 
 USER ${USERID}:${GROUPID}
+
+# This saves to a user-specific path, have to run after USER
+RUN python3 -m nltk.downloader stopwords
 
 COPY --chown=${USERID}:${GROUPID} . .
 
